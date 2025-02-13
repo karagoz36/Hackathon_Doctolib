@@ -2,6 +2,9 @@ all:
 	make build
 	make up
 
+build:
+	docker compose -f srcs/docker-compose.yml build
+
 up:
 	docker compose -f srcs/docker-compose.yml up
 
@@ -19,3 +22,5 @@ frontend-shell:
 
 clean:
 	docker compose -f srcs/docker-compose.yml down --rmi all --volumes --remove-orphans
+
+.PHONY: all build up down clean

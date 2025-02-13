@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+sqlalchemy
+asyncpg  # Pour PostgreSQL en mode async
+alembic  # Migrations
+python-dotenv
+passlib[bcrypt]  # Pour hasher les mots de passe
+pyjwt  # JSON Web Token pour l'auth
+starlette
+pytest
+httpx
