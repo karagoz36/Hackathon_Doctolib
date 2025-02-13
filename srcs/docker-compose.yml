@@ -14,15 +14,16 @@ services:
     env_file:
       - .env
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER"]
+      interval: 0.5s
       retries: 10
-      timeout: 3s
 
   fastapi:
     build: ./backend
     container_name: backend
     restart: always
+    ports:
+      - "8000:8000"
     expose:
       - "8000"
     env_file:
@@ -30,8 +31,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    environment:
-      DATABASE_URL: "postgresql://user:password@db:5432/mydb" 
+    # environment:
+    #   DATABASE_URL: "postgresql://simon:password@postgres:5432/mydb" 
     networks:
       - app-network
 
@@ -54,8 +55,8 @@ services:
     container_name: nginx
     restart: always
     ports:
-      - "80:80"
-      - "443:443"
+      - "8080:80"
+      - "8443:443"
     depends_on:
       - fastapi
       - react
