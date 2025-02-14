@@ -13,9 +13,14 @@ services:
       - app-network
     env_file:
       - .env
+    environment:
+      - POSTGRES_DB=mydb
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=mypassword
+      - POSTGRES_HOST_AUTH_METHOD=password
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER"]
-      interval: 0.5s
+      test: ["CMD-SHELL", "pg_isready -U myuser"]
+      interval: 5s
       retries: 10
 
   fastapi:
