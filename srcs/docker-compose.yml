@@ -44,17 +44,21 @@ services:
     networks:
       - app-network
 
-  react:
-    build: ./frontend
-    container_name: frontend
-    restart: always
-    ports: 
-      - "3000:3000"
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     volumes:
       - ./frontend:/app
-      - /app/node_modules
+      - /app/node_modules 
+    ports:
+      - "3000:80"
     environment:
-      - CHOKIDAR_USEPOLLING=true
+      - VITE_API_URL=http://backend:8000
+    depends_on:
+      - fastapi 
+    env_file:
+      - .env
     networks:
       - app-network
 
@@ -67,7 +71,7 @@ services:
       - "8443:443"
     depends_on:
       - fastapi
-      - react
+      - frontend
     networks:
       - app-network
     volumes:
