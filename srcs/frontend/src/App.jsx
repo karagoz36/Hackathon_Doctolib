@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import axios from "axios";
 import reactLogo from './assets/react.svg'
+import CameraStream from "./components/CameraStream";
 import viteLogo from '/vite.svg'
 import './App.css'
 
@@ -20,6 +21,10 @@ function App() {
 
   return (
     <>
+		<div>
+			<h1>Détection de mouvement</h1>
+			<CameraStream />
+		</div>
       <div>
         <a href="https://vite.dev" target="_blank">
           <img src={viteLogo} className="logo" alt="Vite logo" />

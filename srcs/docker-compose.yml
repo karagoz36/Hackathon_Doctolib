@@ -43,6 +43,10 @@ services:
       DATABASE_URL: "postgresql://myuser:mypassword@postgres:5432/mydb" 
     networks:
       - app-network
+    privileged: true
+    devices:
+      - /dev/video0:/dev/video0
+      - /dev/video1:/dev/video1
 
   frontend:
     build:

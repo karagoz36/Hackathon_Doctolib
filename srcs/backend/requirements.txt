@@ -5,3 +5,7 @@ psycopg2-binary
 pydantic
 passlib
 passlib[bcrypt]
+websockets
+opencv-python
+numpy
+mediapipe
