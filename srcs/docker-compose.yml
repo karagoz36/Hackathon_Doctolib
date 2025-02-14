@@ -18,10 +18,10 @@ services:
       - POSTGRES_USER=myuser
       - POSTGRES_PASSWORD=mypassword
       - POSTGRES_HOST_AUTH_METHOD=password
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U myuser"]
-      interval: 5s
-      retries: 10
+    # healthcheck:
+    #   test: ["CMD-SHELL", "pg_isready -U myuser"]
+    #   interval: 5s
+    #   retries: 10
 
   fastapi:
     build: ./backend
@@ -34,10 +34,13 @@ services:
     env_file:
       - .env
     depends_on:
-      postgres:
-        condition: service_healthy
-    # environment:
-    #   DATABASE_URL: "postgresql://simon:password@postgres:5432/mydb" 
+      - postgres
+      # postgres:
+      #   condition: service_healthy
+    volumes:
+      - ./backend/app:/app/
+    environment:
+      DATABASE_URL: "postgresql://myuser:mypassword@postgres:5432/mydb" 
     networks:
       - app-network
 
