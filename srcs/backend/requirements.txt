@@ -9,3 +9,13 @@ websockets
 opencv-python
 numpy
 mediapipe
+opencv-python
+python-multipart
+pillow
+openai
+gTTS
+python-dotenv
+pydub
+pandas
+plotly
+nbformat

@@ -1,13 +1,18 @@
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine
 from app import models
 from app.routers import users, items
+from app.routers.video_analysis import extract_squat_data, new_extract_squat_data
+from app.routers.message import llm
 import cv2
 import asyncio
 import base64
 import numpy as np
 import mediapipe as mp
+import json
+import tempfile
+import math
 
 # Création des tables dans la base de données
 models.Base.metadata.create_all(bind=engine)
@@ -25,12 +30,12 @@ app.add_middleware(
 
 app.include_router(users.router)
 app.include_router(items.router)
+# app.include_router(video_analysis.router)
 
 @app.get("/api/")
 def root():
 	return {"message": "Bienvenue sur FastAPI avec PostgreSQL !"}
 
-# ✅ Initialisation correcte de MediaPipe Pose
 mp_pose = mp.solutions.pose
 pose = mp_pose.Pose()
 
@@ -38,25 +43,67 @@ pose = mp_pose.Pose()
 async def video_feed(websocket: WebSocket):
     await websocket.accept()
     cap = cv2.VideoCapture(0)
+    frames_data = []
 
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            break
+    try:
+        while True:
+            try:
+                message = await asyncio.wait_for(websocket.receive_text(), timeout=0.01)
+                data = json.loads(message)
+                if data.get("action") == "close":
+                    break
+            except asyncio.TimeoutError:
+                pass
+            except json.JSONDecodeError:
+                pass
+            ret, frame = cap.read()
+            if not ret:
+                break
 
-        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        results = pose.process(rgb_frame)
+            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            results = pose.process(rgb_frame)
+            squat_data = extract_squat_data(results)
+            frames_data.append(squat_data)
+            await llm(squat_data, websocket=websocket)
+            # frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            
+            # # Détection des points clés
+            # results = pose.process(frame_rgb)
+            # data["angles"], prev_landmark = new_extract_squat_data(results, prev_landmark)
+            # if len(data["angles"])>0:
+            #     frames_data.append(data["angles"])
 
-        if results.pose_landmarks:
-            mp.solutions.drawing_utils.draw_landmarks(
-                frame, results.pose_landmarks, mp_pose.POSE_CONNECTIONS
-            )
+            if results.pose_landmarks:
+                mp.solutions.drawing_utils.draw_landmarks(
+                    frame, results.pose_landmarks, mp_pose.POSE_CONNECTIONS
+                )
+            cv2.putText(frame, f"Gauche: {squat_data.get('left_knee', 0):.2f}", 
+                            (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+            cv2.putText(frame, f"Droite: {squat_data.get('right_knee', 0):.2f}", 
+                            (50, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+            cv2.putText(frame, f"Dos: {squat_data.get('back_angle', 0):.2f}", 
+                            (50, 110), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
 
-        _, buffer = cv2.imencode(".jpg", frame)
-        img_base64 = base64.b64encode(buffer).decode()
+            _, buffer = cv2.imencode(".jpg", frame)
+            img_base64 = base64.b64encode(buffer).decode()
 
-        await websocket.send_text(img_base64)
-        await asyncio.sleep(0.03) 
+            await websocket.send_text(json.dumps({"image": img_base64}))
+            await asyncio.sleep(0.03)
+    except WebSocketDisconnect:
+        print("❌ WebSocket déconnecté par le client.")
 
-    cap.release()
-    await websocket.close()
+    finally:
+        cap.release()
+        print("\n===== Fin du streaming WebSocket =====")
+        print(f"Nombre total de frames collectées : {len(frames_data)}")
+        print("Aperçu des données collectées :")
+        for i, data in enumerate(frames_data[:5]):
+            print(f"Frame {i+1} : {data}")
+
+        json_filename = "dataMouv.json"
+        with open(json_filename, "w") as f:
+            json.dump(frames_data, f, indent=4)
+
+        await websocket.close()
+        print("✅ WebSocket fermé proprement.\n")
+    # return {"message": "Analyse terminée", "data": frames_data}
