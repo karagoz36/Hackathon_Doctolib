@@ -44,7 +44,10 @@ async def video_feed(websocket: WebSocket):
     await websocket.accept()
     cap = cv2.VideoCapture(0)
     frames_data = []
-    prev_landmark = None
+    prev_landmark = None 
+    # with open("gt.json", "r") as f:
+    #     gt = json.load(f)
+    gt={}
     try:    
         while True:
             try:
@@ -75,9 +78,9 @@ async def video_feed(websocket: WebSocket):
             if len(angles)>0: # Vérifier si des angles ont été calculés
                 frames_data.append(angles)
             
-            # Envoi au LLM toutes les 20 frames (éviter trop d'appels inutiles)
-            if len(frames_data) >= 20:
-                await llm(frames_data, websocket=websocket)
+            # Envoi au LLM toutes les X frames (éviter trop d'appels inutiles)
+            if len(frames_data) >= 30:
+                await llm(frames_data, gt, websocket=websocket)
                 frames_data.clear()  # Réinitialiser après envoi
             
             if cur_landmark.pose_landmarks:
@@ -99,7 +102,7 @@ async def video_feed(websocket: WebSocket):
             await websocket.send_text(json.dumps({"image": img_base64}))
             await asyncio.sleep(0.03)
     except WebSocketDisconnect:
-        print("❌ WebSocket déconnecté par le client.")
+        print("WebSocket déconnecté par le client.")
 
     finally:
         cap.release()
@@ -114,5 +117,5 @@ async def video_feed(websocket: WebSocket):
             json.dump(frames_data, f, indent=4)
 
         await websocket.close()
-        print("✅ WebSocket fermé proprement.\n")
+        print("WebSocket fermé proprement.\n")
     # return {"message": "Analyse terminée", "data": frames_data}
