@@ -2,3 +2,4 @@ node_modules/
 package-lock.json
 srcs/data/postgres/
 srcs/data/postgres/
+venv/

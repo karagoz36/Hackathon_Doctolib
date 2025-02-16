@@ -80,33 +80,29 @@ Provide specific feedback to the patient on how to adjust their posture or movem
 tmp_frames = []
 
 async def llm(frames, websocket, model="gpt-4o"):  # ✅ Ajout d'async
-    global tmp_frames
-    tmp_frames.append(frames)
 
-    if len(tmp_frames) == 30:
-        USER_INSTRUCTIONS = do_instr(tmp_frames)
+	USER_INSTRUCTIONS = do_instr(tmp_frames)
+	
+	# ✅ Appel OpenAI LLM
+	client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+	llm_start = time.time()
+	response = client.chat.completions.create(
+		model=model,
+		messages=[
+			{"role": "system", "content": SYSTEM_INSTRUCTIONS},
+			{"role": "user", "content": USER_INSTRUCTIONS},
+		],
+	)
+	llm_duration = time.time() - llm_start
+
+	answer = response.choices[0].message.content
+	print(f"🧠 Réponse LLM: {answer}")
+	print(f"⏳ Temps de traitement LLM : {llm_duration:.2f} s.")
+
+	# ✅ Correction : Attendre `stream_tts`
+	await stream_tts(answer, websocket)
+
         
-        # ✅ Appel OpenAI LLM
-        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-        llm_start = time.time()
-        response = client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": SYSTEM_INSTRUCTIONS},
-                {"role": "user", "content": USER_INSTRUCTIONS},
-            ],
-        )
-        llm_duration = time.time() - llm_start
-
-        answer = response.choices[0].message.content
-        print(f"🧠 Réponse LLM: {answer}")
-        print(f"⏳ Temps de traitement LLM : {llm_duration:.2f} s.")
-
-        # ✅ Correction : Attendre `stream_tts`
-        await stream_tts(answer, websocket)
-
-        # ✅ Réinitialiser les frames
-        tmp_frames.clear()
     # return answer
 
 # text = llm()
