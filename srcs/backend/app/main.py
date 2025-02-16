@@ -60,35 +60,38 @@ async def video_feed(websocket: WebSocket):
             if not ret:
                 break
 
-            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            results = pose.process(rgb_frame)
-            squat_data = extract_squat_data(results)
-            frames_data.append(squat_data)
-            await llm(squat_data, websocket=websocket)
-            # frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            # rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            # results = pose.process(rgb_frame)
+            # squat_data = extract_squat_data(results)
+            # frames_data.append(squat_data)
+            # await llm(squat_data, websocket=websocket)
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             
             # Détection des points clés de la frame en cours
-            # cur_landmark = pose.process(frame_rgb)
+            cur_landmark = pose.process(frame_rgb)
 
             # Calcul des angles uniquement s'il y a un mouvement détecté
-            # angles, prev_landmark = new_extract_squat_data(cur_landmark, prev_landmark, 0.1)
-            # if len(angles)>0: # Vérifier si des angles ont été calculés
-            #     frames_data.append(angles)
-            # Envoi au LLM toutes les 20 frames (éviter trop d'appels inutiles)
-            # if len(frames_data) >= 20:
-            #     await llm(frames_data, websocket=websocket)
-            #     frames_data.clear()  # Réinitialiser après envoi
+            angles, prev_landmark = new_extract_squat_data(cur_landmark, prev_landmark, 0.1)
+            if len(angles)>0: # Vérifier si des angles ont été calculés
+                frames_data.append(angles)
             
-            if results.pose_landmarks:
+            # Envoi au LLM toutes les 20 frames (éviter trop d'appels inutiles)
+            if len(frames_data) >= 20:
+                await llm(frames_data, websocket=websocket)
+                frames_data.clear()  # Réinitialiser après envoi
+            
+            if cur_landmark.pose_landmarks:
                 mp.solutions.drawing_utils.draw_landmarks(
-                    frame, results.pose_landmarks, mp_pose.POSE_CONNECTIONS
+                    frame, cur_landmark.pose_landmarks, mp_pose.POSE_CONNECTIONS
                 )
-            cv2.putText(frame, f"Gauche: {squat_data.get('left_knee', 0):.2f}", 
-                            (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
-            cv2.putText(frame, f"Droite: {squat_data.get('right_knee', 0):.2f}", 
-                            (50, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
-            cv2.putText(frame, f"Dos: {squat_data.get('back_angle', 0):.2f}", 
-                            (50, 110), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
+
+            if len(angles)>0:
+                cv2.putText(frame, f"Gauche: {angles.get('left_knee', 0):.2f}", 
+                                (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+                cv2.putText(frame, f"Droite: {angles.get('right_knee', 0):.2f}", 
+                                (50, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+                cv2.putText(frame, f"Dos: {angles.get('back_angle', 0):.2f}", 
+                                (50, 110), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
 
             _, buffer = cv2.imencode(".jpg", frame)
             img_base64 = base64.b64encode(buffer).decode()

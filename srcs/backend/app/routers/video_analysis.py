@@ -101,9 +101,7 @@ def has_movement(prev_points, curr_points, threshold=2):
         return True  # Premier frame, donc on considère qu'il y a du mouvement
     
     for body_element in curr_points:
-      
       for coordinate in ["x", "y", "z"]:
-
         if (np.linalg.norm(np.array(prev_points[body_element][coordinate]) - np.array(curr_points[body_element][coordinate])))> threshold:
             return True
         
