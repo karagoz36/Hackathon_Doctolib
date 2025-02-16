@@ -44,8 +44,8 @@ async def video_feed(websocket: WebSocket):
     await websocket.accept()
     cap = cv2.VideoCapture(0)
     frames_data = []
-
-    try:
+    # prev_landmark = None
+    try:    
         while True:
             try:
                 message = await asyncio.wait_for(websocket.receive_text(), timeout=0.01)
@@ -67,12 +67,18 @@ async def video_feed(websocket: WebSocket):
             await llm(squat_data, websocket=websocket)
             # frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             
-            # # Détection des points clés
-            # results = pose.process(frame_rgb)
-            # data["angles"], prev_landmark = new_extract_squat_data(results, prev_landmark)
-            # if len(data["angles"])>0:
-            #     frames_data.append(data["angles"])
+            # Détection des points clés de la frame en cours
+            # cur_landmark = pose.process(frame_rgb)
 
+            # Calcul des angles uniquement s'il y a un mouvement détecté
+            # angles, prev_landmark = new_extract_squat_data(cur_landmark, prev_landmark, 0.1)
+            # if len(angles)>0: # Vérifier si des angles ont été calculés
+            #     frames_data.append(angles)
+            # Envoi au LLM toutes les 20 frames (éviter trop d'appels inutiles)
+            # if len(frames_data) >= 20:
+            #     await llm(frames_data, websocket=websocket)
+            #     frames_data.clear()  # Réinitialiser après envoi
+            
             if results.pose_landmarks:
                 mp.solutions.drawing_utils.draw_landmarks(
                     frame, results.pose_landmarks, mp_pose.POSE_CONNECTIONS

@@ -99,22 +99,22 @@ def has_movement(prev_points, curr_points, threshold=2):
     """
     if prev_points is None:
         return True  # Premier frame, donc on considère qu'il y a du mouvement
+    
+    for body_element in curr_points:
+      
+      for coordinate in ["x", "y", "z"]:
 
-    for el in curr_points:
-      if (np.linalg.norm(np.array(prev_points[el]['x']) - np.array(curr_points[el]['x'])))> threshold:
-        return True
-      if (np.linalg.norm(np.array(prev_points[el]['y']) - np.array(curr_points[el]['y'])))> threshold:
-        return True
-      if (np.linalg.norm(np.array(prev_points[el]['z']) - np.array(curr_points[el]['z'])))> threshold:
-        return True
+        if (np.linalg.norm(np.array(prev_points[body_element][coordinate]) - np.array(curr_points[body_element][coordinate])))> threshold:
+            return True
+        
     return False
 
 
-def new_extract_squat_data(results, prev_landmark, threshold = 0.1):
+def new_extract_squat_data(cur_landmark, prev_landmark, threshold = 0.1):
   data = {"landmarks": {}, "angles": {}}
 
-  if results.pose_landmarks:
-    landmarks = results.pose_landmarks.landmark
+  if cur_landmark.pose_landmarks:
+    landmarks = cur_landmark.pose_landmarks.landmark
     
     # Récupération des coordonnées des points clés
     for name, idx in KEY_LANDMARKS.items():
