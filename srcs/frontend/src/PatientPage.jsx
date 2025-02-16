@@ -34,7 +34,7 @@ const PatientPage = () => {
   return (
     <div className="d-flex flex-column align-items-center justify-content-center vh-100" style={{ backgroundColor: "#F3E5F5" }}>
       <div className="p-5 bg-white rounded shadow text-center" style={{ maxWidth: "600px", width: "100%" }}>
-        <h1 className="text-purple-600 mb-4">Sélectionnez votre exercice:</h1>
+        <h1 className="text-purple-600 mb-4">Your physiologist recommends you:</h1>
         <div className="d-flex flex-wrap justify-content-center">
           {exercises.map((exercise) => (
             <div key={exercise.id} className="m-2">
@@ -50,7 +50,7 @@ const PatientPage = () => {
         </div>
         {selectedExercise && (
           <div className="mt-4">
-            <h2>Exercice sélectionné: {selectedExercise.name}</h2>
+            <h2>Selected exercise: {selectedExercise.name}</h2>
             <div className="embed-responsive embed-responsive-16by9">
               <iframe
                 className="embed-responsive-item"
@@ -68,7 +68,7 @@ const PatientPage = () => {
               style={{ backgroundColor: "#E6E6FA", color: "#4B0082" }}
               onClick={startExercise}
             >
-              Commencer l'exercice
+              Start exercise
             </button>
             {showCamera && <CameraStream />}
           </div>

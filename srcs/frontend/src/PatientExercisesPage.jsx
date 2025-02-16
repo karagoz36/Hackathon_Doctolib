@@ -15,7 +15,7 @@ const PatientExercisesPage = () => {
   return (
     <div className="d-flex flex-column align-items-center justify-content-center vh-100" style={{ backgroundColor: "#F3E5F5" }}>
       <div className="p-5 bg-white rounded shadow text-center" style={{ maxWidth: "600px", width: "100%" }}>
-        <h1 className="mb-4" style={{ color: "#4B0082" }}>Exercices pour {patientId}</h1>
+        <h1 className="mb-4" style={{ color: "#4B0082" }}>Exercises for X Æ A-12 Musk</h1>
         <ul className="list-group">
           {exercises.map((exercise) => (
             <li key={exercise.id} className="list-group-item" style={{ backgroundColor: "#E6E6FA", color: "#4B0082" }}>
@@ -28,7 +28,7 @@ const PatientExercisesPage = () => {
           style={{ backgroundColor: "#D8BFD8", color: "#4B0082" }}
           onClick={addExercise}
         >
-          Ajouter un exercice
+          Add an exercise
         </button>
       </div>
     </div>
