@@ -44,7 +44,7 @@ async def video_feed(websocket: WebSocket):
     await websocket.accept()
     cap = cv2.VideoCapture(0)
     frames_data = []
-    # prev_landmark = None
+    prev_landmark = None
     try:    
         while True:
             try:
