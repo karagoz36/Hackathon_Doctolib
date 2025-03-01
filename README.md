@@ -1,4 +1,4 @@
-# Hackathon Doctolib
+# Hackathon Doctolib 
 
 Welcome to the **Hackathon Doctolib** project! This project was developed as part of a hackathon and is based on the use of **Large Language Models (LLMs)** to enhance the user experience in the healthcare sector.
 
